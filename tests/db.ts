@@ -34,6 +34,7 @@ type Sql = typeof sql
 async function initDatabase() {
   await sql("drop table if exists Test")
   await sql("create table Test (id int(11) primary key auto_increment)")
+  await sql("create table TestSub (id int(11) primary key auto_increment, testId int(11))")
 }
 
 let triggers: BinlogTriggers
@@ -49,6 +50,7 @@ before(async () => {
 
 beforeEach(async () => {
   await sql("delete from Test")
+  await sql("delete from TestSub")
 })
 
 after(() => {
@@ -74,5 +76,5 @@ setTrackingContextWrapper((ctx: Context, saveTrack) => {
 })
 
 export async function adelay(ms) {
-  await new Promise(r => setTimeout(r, ms))
+  await new Promise((r) => setTimeout(r, ms))
 }
