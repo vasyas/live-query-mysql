@@ -36,10 +36,12 @@ async function initDatabase() {
   await sql("create table Test (id int(11) primary key auto_increment)")
 }
 
+let triggers: BinlogTriggers
+
 before(async () => {
   await initDatabase()
 
-  const triggers = new BinlogTriggers()
+  triggers = new BinlogTriggers()
   enableLiveQueries(triggers)
 
   triggers.start(dbConfig)
@@ -49,20 +51,23 @@ beforeEach(async () => {
   await sql("delete from Test")
 })
 
-setTrackingContextWrapper((ctx: {sql: Sql}, saveTrack) => {
+afterEach(() => {
+  process.exit(0)
+})
+
+export type Context = {sql: Sql}
+
+setTrackingContextWrapper((ctx: Context, saveTrack) => {
   return {
     ...ctx,
-    sql: sqlWithTableTracking(ctx.sql, saveTrack),
+    sql: (query, params) => {
+      const results = ctx.sql.call(null, query, params)
+
+      const track = getQueryDataTrack(query, params)
+      saveTrack(track)
+
+      return results
+    },
   }
 })
 
-function sqlWithTableTracking(oldSql: Sql, saveTrack): Sql {
-  return (query, params) => {
-    const results = oldSql.call(null, query, params)
-
-    const track = getQueryDataTrack(query, params)
-    saveTrack(track)
-
-    return results
-  }
-}
