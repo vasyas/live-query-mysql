@@ -17,13 +17,25 @@ export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
 
 const liveQueriesPerTable: {[tableName: string]: LiveQuery<never, never>[]} = {}
 
-export function trackTable(tableName, liveQuery) {
+export function trackData(track: DataTrack, liveQuery) {
+  for (const tableName of track) {
+    trackTable(tableName, liveQuery)
+  }
+}
+
+export function untrackData(track: DataTrack, liveQuery) {
+  for (const tableName of track) {
+    untrackTable(tableName, liveQuery)
+  }
+}
+
+function trackTable(tableName, liveQuery) {
   const t = liveQueriesPerTable[tableName] || []
   t.push(liveQuery)
   liveQueriesPerTable[tableName] = t
 }
 
-export function untrackTable(tableName, liveQuery) {
+function untrackTable(tableName, liveQuery) {
   const t = liveQueriesPerTable[tableName]
   if (!t) return
 
@@ -68,3 +80,5 @@ function getQueryTables(query: string): string[] {
   const tableList = parser.tableList(query)
   return tableList.map((t) => t.split("::")[2])
 }
+
+export type DataTrack = string[]

@@ -1,6 +1,6 @@
 import {DataSupplier, LocalTopicImpl} from "@push-rpc/core"
 import {LocalTopicImplOpts} from "@push-rpc/core/dist/local"
-import {sqlBuilderWithTableTracking, trackTable, untrackTable} from "./tracker"
+import {DataTrack, sqlBuilderWithTableTracking, trackData, untrackData} from "./tracker"
 
 /**
  * Queries should use the same tables in each invocation, otherwise tracking will fail
@@ -11,14 +11,14 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
   }
 
   private wrapContext(ctx) {
-    if (this.trackedTables) return ctx
+    if (this.track) return ctx
 
     // wrap sql to track affected tables
     return {
       ...ctx,
       sql: sqlBuilderWithTableTracking(ctx.sql, (tables) => {
-        if (!this.trackedTables) this.trackedTables = []
-        this.trackedTables.push(...tables)
+        if (!this.track) this.track = []
+        this.track.push(...tables)
       }),
     }
   }
@@ -28,24 +28,21 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
 
     await super.subscribeSession(session, filter)
 
-    // already have trackedTables filled here
+    // already have track filled here, b/c initial data is sent
 
     if (!subscribed) {
-      this.trackedTables.forEach((tableName) => {
-        trackTable(tableName, this)
-      })
+      trackData(this.track, this)
     }
   }
 
   unsubscribeSession(session, filter: F) {
     super.unsubscribeSession(session, filter)
 
-    if (!this.isSubscribed() && this.trackedTables) {
-      this.trackedTables.forEach((tableName) => {
-        untrackTable(tableName, this)
-      })
+    // no longer subscribed and at least one query complete
+    if (!this.isSubscribed() && this.track) {
+      untrackData(this.track, this)
     }
   }
 
-  private trackedTables: string[]
+  private track: DataTrack
 }
