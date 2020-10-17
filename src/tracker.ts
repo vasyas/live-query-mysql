@@ -1,56 +1,7 @@
-import {DataSupplier, LocalTopicImpl} from "@push-rpc/core"
-import {LocalTopicImplOpts} from "@push-rpc/core/dist/local"
 import {BinlogEvent, BinlogTriggers} from "binlog-triggers-mysql"
 import {SqlBuilder} from "interpolated-sql"
 import {Parser} from "node-sql-parser"
-
-/**
- * Queries should use the same tables in each invocation, otherwise tracking will fail
- */
-export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
-  constructor(supplier: DataSupplier<D, F>, opts?: Partial<LocalTopicImplOpts<D, F, TD>>) {
-    super((f: F, ctx) => supplier(f, this.wrapContext(ctx)), opts)
-  }
-
-  private wrapContext(ctx) {
-    if (this.trackedTables) return ctx
-
-    // wrap sql to track affected tables
-    return {
-      ...ctx,
-      sql: sqlBuilderWithTableTracking(ctx.sql, (tables) => {
-        if (!this.trackedTables) this.trackedTables = []
-        this.trackedTables.push(...tables)
-      }),
-    }
-  }
-
-  async subscribeSession(session, filter: F) {
-    const subscribed = this.isSubscribed()
-
-    await super.subscribeSession(session, filter)
-
-    // already have trackedTables filled here
-
-    if (!subscribed) {
-      this.trackedTables.forEach((tableName) => {
-        trackTable(tableName, this)
-      })
-    }
-  }
-
-  unsubscribeSession(session, filter: F) {
-    super.unsubscribeSession(session, filter)
-
-    if (!this.isSubscribed() && this.trackedTables) {
-      this.trackedTables.forEach((tableName) => {
-        untrackTable(tableName, this)
-      })
-    }
-  }
-
-  private trackedTables: string[]
-}
+import {LiveQuery} from "./LiveQuery"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   binlogTriggers.allTables((rows, prevRows, event) => {
@@ -66,13 +17,13 @@ export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
 
 const liveQueriesPerTable: {[tableName: string]: LiveQuery<never, never>[]} = {}
 
-function trackTable(tableName, liveQuery) {
+export function trackTable(tableName, liveQuery) {
   const t = liveQueriesPerTable[tableName] || []
   t.push(liveQuery)
   liveQueriesPerTable[tableName] = t
 }
 
-function untrackTable(tableName, liveQuery) {
+export function untrackTable(tableName, liveQuery) {
   const t = liveQueriesPerTable[tableName]
   if (!t) return
 
@@ -89,7 +40,7 @@ function getAffectedQueries(event: BinlogEvent): LiveQuery<never, never>[] {
 }
 
 /** wraps SqlBuilder with ability to track tables in SQL */
-function sqlBuilderWithTableTracking(createSql: SqlBuilder, updateTables): SqlBuilder {
+export function sqlBuilderWithTableTracking(createSql: SqlBuilder, updateTables): SqlBuilder {
   return (...params) => {
     const sql = createSql.apply(null, params)
     const oldConnectionSupplier = sql.connectionSupplier
