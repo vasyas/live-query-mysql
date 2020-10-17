@@ -1,6 +1,6 @@
 import {assert} from "chai"
 import {LiveQuery} from "../src/LiveQuery"
-import {Context, sql} from "./db"
+import {adelay, Context, sql} from "./db"
 
 describe("simple", () => {
   let testData = []
@@ -19,5 +19,9 @@ describe("simple", () => {
 
     await liveQuery.subscribeSession(mockSession, {})
     assert.equal(1, testData.length)
+
+    await sql("insert into Test values()")
+    await adelay(10)
+    assert.equal(2, testData.length)
   })
 })

@@ -51,8 +51,10 @@ beforeEach(async () => {
   await sql("delete from Test")
 })
 
-afterEach(() => {
-  process.exit(0)
+after(() => {
+  setTimeout(() => {
+    process.exit(0)
+  }, 20)
 })
 
 export type Context = {sql: Sql}
@@ -71,3 +73,6 @@ setTrackingContextWrapper((ctx: Context, saveTrack) => {
   }
 })
 
+export async function adelay(ms) {
+  await new Promise(r => setTimeout(r, ms))
+}
