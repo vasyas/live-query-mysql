@@ -1,6 +1,7 @@
 import {DataSupplier, LocalTopicImpl} from "@push-rpc/core"
 import {LocalTopicImplOpts} from "@push-rpc/core/dist/local"
-import {DataTrack, sqlBuilderWithTableTracking, trackData, untrackData} from "./tracker"
+import {SqlBuilder} from "interpolated-sql"
+import {DataTrack, getQueryDataTrack, trackData, untrackData} from "./tracker"
 
 /**
  * Queries should use the same tables in each invocation, otherwise tracking will fail
@@ -45,4 +46,28 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
   }
 
   private track: DataTrack
+}
+
+/** wraps SqlBuilder with ability to track tables in SQL */
+function sqlBuilderWithTableTracking(createSql: SqlBuilder, updateTables): SqlBuilder {
+  return (...params) => {
+    const sql = createSql.apply(null, params)
+    const oldConnectionSupplier = sql.connectionSupplier
+
+    sql.connectionSupplier = async () => {
+      const connection = await oldConnectionSupplier()
+
+      const oldExecute = connection.execute
+      connection.execute = (query, params) => {
+        const tables = getQueryDataTrack(query, params)
+        updateTables(tables)
+
+        return oldExecute.call(connection, query, params)
+      }
+
+      return connection
+    }
+
+    return sql
+  }
 }

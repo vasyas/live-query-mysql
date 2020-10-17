@@ -1,5 +1,4 @@
 import {BinlogEvent, BinlogTriggers} from "binlog-triggers-mysql"
-import {SqlBuilder} from "interpolated-sql"
 import {Parser} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
 
@@ -51,28 +50,9 @@ function getAffectedQueries(event: BinlogEvent): LiveQuery<never, never>[] {
   return liveQueriesPerTable[event.tableName] || []
 }
 
-/** wraps SqlBuilder with ability to track tables in SQL */
-export function sqlBuilderWithTableTracking(createSql: SqlBuilder, updateTables): SqlBuilder {
-  return (...params) => {
-    const sql = createSql.apply(null, params)
-    const oldConnectionSupplier = sql.connectionSupplier
-
-    sql.connectionSupplier = async () => {
-      const connection = await oldConnectionSupplier()
-
-      const oldExecute = connection.execute
-      connection.execute = (query, params) => {
-        const tables = getQueryTables(query)
-        updateTables(tables)
-
-        return oldExecute.call(connection, query, params)
-      }
-
-      return connection
-    }
-
-    return sql
-  }
+export function getQueryDataTrack(query, params): DataTrack {
+  const tables = getQueryTables(query)
+  return tables
 }
 
 function getQueryTables(query: string): string[] {
