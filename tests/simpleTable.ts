@@ -53,7 +53,7 @@ describe("simple track", () => {
     assert.equal(3, testData.length)
   })
 
-  it("different queries", async () => {
+  it("different dmls", async () => {
     const liveQuery = new LiveQuery(async (_, ctx: Context) => {
       await ctx.sql("select * from Test")
     })
