@@ -1,27 +1,24 @@
 import {DataSupplier, LocalTopicImpl} from "@push-rpc/core"
 import {LocalTopicImplOpts} from "@push-rpc/core/dist/local"
-import {SqlBuilder} from "interpolated-sql"
-import {DataTrack, getQueryDataTrack, trackData, untrackData} from "./tracker"
+import {DataTrack, trackData, untrackData} from "./tracker"
 
 /**
  * Queries should use the same tables in each invocation, otherwise tracking will fail
  */
 export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
   constructor(supplier: DataSupplier<D, F>, opts?: Partial<LocalTopicImplOpts<D, F, TD>>) {
-    super((f: F, ctx) => supplier(f, this.wrapContext(ctx)), opts)
+    super((f: F, ctx) => supplier(f, this.wrapContextIfRequired(ctx)), opts)
   }
 
-  private wrapContext(ctx) {
-    if (this.track) return ctx
+  private wrapContextIfRequired(ctx) {
+    // do not wrap if already got tracks
+    if (this.tracks) return ctx
 
     // wrap sql to track affected tables
-    return {
-      ...ctx,
-      sql: sqlBuilderWithTableTracking(ctx.sql, (tables) => {
-        if (!this.track) this.track = []
-        this.track.push(...tables)
-      }),
-    }
+    return trackingContextWrapper(ctx, (track) => {
+      if (!this.tracks) this.tracks = []
+      this.tracks.push(track)
+    })
   }
 
   async subscribeSession(session, filter: F) {
@@ -32,7 +29,8 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
     // already have track filled here, b/c initial data is sent
 
     if (!subscribed) {
-      trackData(this.track, this)
+      for (const track of this.tracks)
+        trackData(track, this)
     }
   }
 
@@ -40,34 +38,21 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
     super.unsubscribeSession(session, filter)
 
     // no longer subscribed and at least one query complete
-    if (!this.isSubscribed() && this.track) {
-      untrackData(this.track, this)
+    if (!this.isSubscribed() && this.tracks) {
+      for (const track of this.tracks)
+        untrackData(track, this)
     }
   }
 
-  private track: DataTrack
+  private tracks: DataTrack[]
 }
 
-/** wraps SqlBuilder with ability to track tables in SQL */
-function sqlBuilderWithTableTracking(createSql: SqlBuilder, updateTables): SqlBuilder {
-  return (...params) => {
-    const sql = createSql.apply(null, params)
-    const oldConnectionSupplier = sql.connectionSupplier
+export type TrackingContextWrapper<T extends Record<string, unknown>> = (ctx: T, saveTrack: (t: DataTrack) => void) => T
 
-    sql.connectionSupplier = async () => {
-      const connection = await oldConnectionSupplier()
+let trackingContextWrapper: TrackingContextWrapper<Record<string, unknown>> = () => {
+  throw new Error("Provide trackingContextWrapper")
+}
 
-      const oldExecute = connection.execute
-      connection.execute = (query, params) => {
-        const tables = getQueryDataTrack(query, params)
-        updateTables(tables)
-
-        return oldExecute.call(connection, query, params)
-      }
-
-      return connection
-    }
-
-    return sql
-  }
+export function setTrackingContextWrapper<T extends Record<string, unknown>>(w: TrackingContextWrapper<T>) {
+  trackingContextWrapper = w
 }
