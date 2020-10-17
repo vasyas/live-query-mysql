@@ -1,5 +1,6 @@
 import {BinlogEvent, BinlogTriggers} from "binlog-triggers-mysql"
-import {Parser} from "node-sql-parser"
+import {ensureArray} from "binlog-triggers-mysql/dist/utils"
+import {From, Parser, Select} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
@@ -22,14 +23,14 @@ export function resetLiveQueriesTracks() {
 const liveQueriesPerTable: {[tableName: string]: LiveQuery<never, never>[]} = {}
 
 export function trackData(track: DataTrack, liveQuery) {
-  for (const tableName of track) {
-    trackTable(tableName, liveQuery)
+  for (const tableTrack of track) {
+    trackTable(tableTrack.name, liveQuery)
   }
 }
 
 export function untrackData(track: DataTrack, liveQuery) {
-  for (const tableName of track) {
-    untrackTable(tableName, liveQuery)
+  for (const tableTrack of track) {
+    untrackTable(tableTrack.name, liveQuery)
   }
 }
 
@@ -56,14 +57,27 @@ function getAffectedQueries(event: BinlogEvent): LiveQuery<never, never>[] {
 }
 
 export function getQueryDataTrack(query, params): DataTrack {
-  const tables = getQueryTables(query)
-  return tables
-}
-
-function getQueryTables(query: string): string[] {
   const parser = new Parser()
-  const tableList = parser.tableList(query)
-  return tableList.map((t) => t.split("::")[2])
+  const asts = ensureArray(parser.astify(query))
+
+  const r: DataTrack = []
+
+  for (const ast of asts) {
+    if (ast.type != "select") continue
+
+    for (const from of ast.from) {
+      if (from["type"] == "dual") continue
+
+      r.push({
+        name: (from as From).table,
+      })
+    }
+  }
+
+  return r
 }
 
-export type DataTrack = string[]
+export type DataTrack = TableTrack[]
+export type TableTrack = {
+  name: string
+}
