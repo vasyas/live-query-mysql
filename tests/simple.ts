@@ -1,5 +1,6 @@
 import {assert} from "chai"
 import {LiveQuery} from "../src/LiveQuery"
+import {sql} from "./db"
 
 describe("simple", () => {
   let testData = []
@@ -8,6 +9,7 @@ describe("simple", () => {
     send(type, messageId, topicName, filter, data) {
       testData.push(data)
     },
+    createContext: () => ({sql})
   }
 
   it("track all records from table", async () => {

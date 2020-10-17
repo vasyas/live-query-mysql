@@ -447,11 +447,6 @@ inherits@2, inherits@~2.0.3:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-interpolated-sql@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/interpolated-sql/-/interpolated-sql-1.0.7.tgz#fa27a05986f33be0687b9c45e88da66c66c72ffa"
-  integrity sha512-xlbeZH+NtQpZ6dMYd1YBGpZhDJzZl1umyZQ3bnW/XnNRs1rcjdr1m0mjt0qtB0Hsla8t5xdQi+OhKt5z3zPEGw==
-
 is-arguments@^1.0.4:
   version "1.0.4"
   resolved "https://npm.jibo.com/repository/ntt/is-arguments/-/is-arguments-1.0.4.tgz#3faf966c7cba0ff437fb31f6250082fcf0448cf3"

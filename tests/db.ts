@@ -1,8 +1,7 @@
-import { DbConfig } from "binlog-triggers-mysql"
-import {SqlBuilder} from "interpolated-sql"
+import {BinlogTriggers, DbConfig} from "binlog-triggers-mysql"
 import * as mysql from "mysql"
 import {setTrackingContextWrapper} from "../src/LiveQuery"
-import {getQueryDataTrack} from "../src/tracker"
+import {enableLiveQueries, getQueryDataTrack} from "../src/tracker"
 
 const dbConfig: DbConfig = {
   database: "binlog_demo",
@@ -12,12 +11,12 @@ const dbConfig: DbConfig = {
   port: 3306,
 }
 
-function sql(s: string): Promise<void> {
+export function sql(query: string, params: unknown[] = []): Promise<void> {
   const connection = mysql.createConnection(dbConfig)
   connection.connect()
 
   return new Promise((resolve, reject) => {
-    connection.query(s, (error, results, fields) => {
+    connection.query(query, (error, results, fields) => {
       if (error) reject(error)
       else resolve(results)
 
@@ -30,6 +29,8 @@ function sql(s: string): Promise<void> {
   })
 }
 
+type Sql = typeof sql
+
 async function initDatabase() {
   await sql("drop table if exists Test")
   await sql("create table Test (id int(11) primary key auto_increment)")
@@ -37,38 +38,31 @@ async function initDatabase() {
 
 before(async () => {
   await initDatabase()
+
+  const triggers = new BinlogTriggers()
+  enableLiveQueries(triggers)
+
+  triggers.start(dbConfig)
 })
 
 beforeEach(async () => {
   await sql("delete from Test")
 })
 
-setTrackingContextWrapper((ctx: {sql}, saveTrack) => {
+setTrackingContextWrapper((ctx: {sql: Sql}, saveTrack) => {
   return {
     ...ctx,
-    sql: sqlBuilderWithTableTracking(ctx.sql, saveTrack),
+    sql: sqlWithTableTracking(ctx.sql, saveTrack),
   }
 })
 
-function sqlBuilderWithTableTracking(createSql: SqlBuilder, saveTrack): SqlBuilder {
-  return (...params) => {
-    const sql = createSql.apply(null, params)
-    const oldConnectionSupplier = sql.connectionSupplier
+function sqlWithTableTracking(oldSql: Sql, saveTrack): Sql {
+  return (query, params) => {
+    const results = oldSql.call(null, query, params)
 
-    sql.connectionSupplier = async () => {
-      const connection = await oldConnectionSupplier()
+    const track = getQueryDataTrack(query, params)
+    saveTrack(track)
 
-      const oldExecute = connection.execute
-      connection.execute = (query, params) => {
-        const track = getQueryDataTrack(query, params)
-        saveTrack(track)
-
-        return oldExecute.call(connection, query, params)
-      }
-
-      return connection
-    }
-
-    return sql
+    return results
   }
 }

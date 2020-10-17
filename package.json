@@ -22,7 +22,6 @@
   "dependencies": {
     "@push-rpc/core": "^1.1.4",
     "binlog-triggers-mysql": "^1.0.1",
-    "interpolated-sql": "^1.0.7",
     "node-sql-parser": "^3.1.0"
   },
   "devDependencies": {
