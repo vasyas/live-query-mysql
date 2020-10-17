@@ -1,17 +1,9 @@
 import {assert} from "chai"
 import {LiveQuery} from "../src/LiveQuery"
 import {adelay, Context, sql} from "./db"
+import {mockSession, testData} from "./mockSession"
 
 describe("simple track", () => {
-  let testData = []
-
-  const mockSession = {
-    send(type, messageId, topicName, filter, data) {
-      testData.push(data)
-    },
-    createContext: () => ({sql}),
-  }
-
   it("single table", async () => {
     const liveQuery = new LiveQuery(async (_, ctx: Context) => {
       await ctx.sql("select * from Test")

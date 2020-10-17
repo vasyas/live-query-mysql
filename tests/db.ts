@@ -33,6 +33,7 @@ type Sql = typeof sql
 
 async function initDatabase() {
   await sql("drop table if exists Test")
+  await sql("drop table if exists TestSub")
   await sql("create table Test (id int(11) primary key auto_increment)")
   await sql("create table TestSub (id int(11) primary key auto_increment, testId int(11))")
 }
