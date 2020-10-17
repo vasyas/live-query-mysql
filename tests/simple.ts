@@ -1,5 +1,5 @@
-import { assert } from "chai"
-import {LiveQuery} from "../src"
+import {assert} from "chai"
+import {LiveQuery} from "../src/LiveQuery"
 
 describe("simple", () => {
   let testData = []
