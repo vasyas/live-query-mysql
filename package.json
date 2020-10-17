@@ -1,0 +1,34 @@
+{
+  "name": "live-query",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": "https://github.com/vasyas/live-query.git",
+  "keywords": [
+    "mysql",
+    "binlog",
+    "query",
+    "nodejs",
+    "live query"
+  ],
+  "author": "vasyas <vasyl@stashuk.com>",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@push-rpc/core": "^1.1.4",
+    "binlog-triggers-mysql": "^1.0.1",
+    "interpolated-sql": "^1.0.7",
+    "node-sql-parser": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.22",
+    "mysql": "^2.18.1",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3"
+  },
+  "license": "MIT"
+}
