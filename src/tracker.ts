@@ -12,8 +12,13 @@ export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   })
 }
 
-// for now, just trigger all queries that read from affected tables
+export function resetLiveQueriesTracks() {
+  for (const key of Object.keys(liveQueriesPerTable)) {
+    delete liveQueriesPerTable[key]
+  }
+}
 
+// for now, just trigger all queries that read from affected tables
 const liveQueriesPerTable: {[tableName: string]: LiveQuery<never, never>[]} = {}
 
 export function trackData(track: DataTrack, liveQuery) {

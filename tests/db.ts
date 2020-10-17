@@ -1,7 +1,7 @@
 import {BinlogTriggers, DbConfig} from "binlog-triggers-mysql"
 import * as mysql from "mysql"
 import {setTrackingContextWrapper} from "../src/LiveQuery"
-import {enableLiveQueries, getQueryDataTrack} from "../src/tracker"
+import {enableLiveQueries, getQueryDataTrack, resetLiveQueriesTracks} from "../src/tracker"
 
 const dbConfig: DbConfig = {
   database: "binlog_demo",
@@ -50,6 +50,8 @@ before(async () => {
 })
 
 beforeEach(async () => {
+  resetLiveQueriesTracks()
+
   await sql("delete from Test")
   await sql("delete from TestSub")
 })
