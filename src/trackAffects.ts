@@ -68,6 +68,8 @@ function binary_expr(node) {
     const leftValue = left(row)
     const rightValue = right(row)
 
+    // console.log("Calc", {node, leftValue, rightValue})
+
     switch (node.operator) {
       case "OR":
         return leftValue || rightValue
@@ -86,11 +88,11 @@ function binary_expr(node) {
       case ">":
         return leftValue > rightValue
       case "<=":
-        return leftValue - rightValue
+        return leftValue <= rightValue
       case "<>":
         return leftValue != rightValue
       case "<":
-        return leftValue != rightValue
+        return leftValue < rightValue
       case "=":
         return leftValue == rightValue
       case "!=":
