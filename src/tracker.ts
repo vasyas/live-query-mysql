@@ -2,6 +2,7 @@ import {BinlogEvent, BinlogTriggers, Row} from "binlog-triggers-mysql"
 import {ensureArray} from "binlog-triggers-mysql/dist/utils"
 import {From, Parser} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
+import {createTrackAffects, TrackAffects} from "./trackAffects"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   binlogTriggers.allTables((rows, prevRows, event) => {
@@ -75,7 +76,7 @@ export function getQueryDataTrack(query, params): DataTrack {
 
       r.push({
         name: (from as From).table,
-        affects: () => true,
+        affects: createTrackAffects(ast.where),
       })
     }
   }
@@ -88,5 +89,3 @@ export type TableTrack = {
   name: string
   affects: TrackAffects
 }
-
-type TrackAffects = (row: Row) => boolean
