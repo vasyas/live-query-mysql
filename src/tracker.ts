@@ -1,11 +1,11 @@
-import {BinlogEvent, BinlogTriggers} from "binlog-triggers-mysql"
+import {BinlogEvent, BinlogTriggers, Row} from "binlog-triggers-mysql"
 import {ensureArray} from "binlog-triggers-mysql/dist/utils"
-import {From, Parser, Select} from "node-sql-parser"
+import {From, Parser} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   binlogTriggers.allTables((rows, prevRows, event) => {
-    const queries = getAffectedQueries(event)
+    const queries = getAffectedQueries(event, rows, prevRows)
 
     queries.forEach((q) => {
       q.trigger()
@@ -13,47 +13,52 @@ export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   })
 }
 
+// for tests
 export function resetLiveQueriesTracks() {
-  for (const key of Object.keys(liveQueriesPerTable)) {
-    delete liveQueriesPerTable[key]
+  for (const key of Object.keys(perTableTracks)) {
+    delete perTableTracks[key]
   }
 }
 
-// for now, just trigger all queries that read from affected tables
-const liveQueriesPerTable: {[tableName: string]: LiveQuery<never, never>[]} = {}
+const perTableTracks: {
+  [tableName: string]: {query: LiveQuery<unknown, unknown>; affects: TrackAffects}[]
+} = {}
 
-export function trackData(track: DataTrack, liveQuery) {
+export function trackData(track: DataTrack, query: LiveQuery<unknown, unknown>) {
   for (const tableTrack of track) {
-    trackTable(tableTrack.name, liveQuery)
+    const t = perTableTracks[tableTrack.name] || []
+    perTableTracks[tableTrack.name] = t
+
+    t.push({
+      query,
+      affects: tableTrack.affects,
+    })
   }
 }
 
 export function untrackData(track: DataTrack, liveQuery) {
   for (const tableTrack of track) {
-    untrackTable(tableTrack.name, liveQuery)
+    const t = perTableTracks[tableTrack.name]
+    if (!t) return
+
+    const index = t.findIndex((t) => t.query == liveQuery)
+    if (index > -1) {
+      t.splice(index, 1)
+    }
+
+    if (!t.length) delete perTableTracks[tableTrack.name]
   }
 }
 
-function trackTable(tableName, liveQuery) {
-  const t = liveQueriesPerTable[tableName] || []
-  t.push(liveQuery)
-  liveQueriesPerTable[tableName] = t
-}
+function getAffectedQueries(
+  event: BinlogEvent,
+  rows: Row[],
+  prevRows: Row[]
+): LiveQuery<unknown, unknown>[] {
+  const allRows = [...rows, ...(prevRows || [])]
 
-function untrackTable(tableName, liveQuery) {
-  const t = liveQueriesPerTable[tableName]
-  if (!t) return
-
-  const index = t.indexOf(liveQuery)
-  if (index > -1) {
-    t.splice(index, 1)
-  }
-
-  if (!t.length) delete liveQueriesPerTable[tableName]
-}
-
-function getAffectedQueries(event: BinlogEvent): LiveQuery<never, never>[] {
-  return liveQueriesPerTable[event.tableName] || []
+  const tableTracks = perTableTracks[event.tableName] || []
+  return tableTracks.filter((t) => allRows.some((row) => t.affects(row))).map((t) => t.query)
 }
 
 export function getQueryDataTrack(query, params): DataTrack {
@@ -70,6 +75,7 @@ export function getQueryDataTrack(query, params): DataTrack {
 
       r.push({
         name: (from as From).table,
+        affects: () => true,
       })
     }
   }
@@ -80,4 +86,7 @@ export function getQueryDataTrack(query, params): DataTrack {
 export type DataTrack = TableTrack[]
 export type TableTrack = {
   name: string
+  affects: TrackAffects
 }
+
+type TrackAffects = (row: Row) => boolean

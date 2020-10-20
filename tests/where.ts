@@ -4,7 +4,7 @@ import {adelay, Context, sql} from "./db"
 import {mockSession, testData} from "./mockSession"
 
 describe("where track", () => {
-  it("single field", async () => {
+  it("single field constant", async () => {
     const liveQuery = new LiveQuery(async (_, ctx: Context) => {
       await ctx.sql("select * from Test where id = 1")
     })
@@ -21,6 +21,8 @@ describe("where track", () => {
     await adelay(10)
     assert.equal(2, testData.length)
   })
+
+  // prepared statement
 
   // operators: like, in, gt, lt
   // combinators: and, or
