@@ -1,1 +1,2 @@
-export * from "./liveQuery"
+export * from "./LiveQuery"
+export {enableLiveQueries, resetLiveQueriesTracks} from "./tracker"

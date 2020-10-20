@@ -16,7 +16,7 @@ export function sql(query: string, params: unknown[] = []): Promise<void> {
   connection.connect()
 
   return new Promise((resolve, reject) => {
-    connection.query(query, (error, results, fields) => {
+    connection.query(query, params, (error, results, fields) => {
       if (error) reject(error)
       else resolve(results)
 
