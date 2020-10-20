@@ -4,7 +4,7 @@ export let testData = []
 
 export const mockSession = {
   send(type, messageId, topicName, filter, data) {
-    console.log("G: ", {type, topicName, filter, data})
+    // console.log("G: ", {type, topicName, filter, data})
     testData.push(data)
   },
   createContext: () => ({sql}),

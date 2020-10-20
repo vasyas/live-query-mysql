@@ -133,18 +133,38 @@ describe("where track", () => {
     assert.equal(2, testData.length)
   })
 
-  // parenthes
+  it("in", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from Test where id in (2, 3)")
+    )
 
-  // operators: like, in
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
 
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(2)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    await sql("insert into Test(id) values(3)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+
+    await sql("insert into Test(id) values(4)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+  })
+
+  // operators: like
   // page (limit, offset)
 
   // only certain fields
-
   // functions: lower etc
 
   // inner joins
-
   // operators with json
 
   // groups?
