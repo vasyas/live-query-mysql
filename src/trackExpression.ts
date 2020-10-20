@@ -14,7 +14,7 @@ export function createTrackAffects(where): TrackExpression {
     } catch (e) {
       console.log({row, tableName})
 
-      log.debug("Failed to calc affects ", e)
+      log.debug("Failed to calc affects. ", e.message)
 
       // affects by default
       return true

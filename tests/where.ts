@@ -188,19 +188,15 @@ describe("where track", () => {
     // hard - only last one should trigger, no good way to handle it
 
     await sql("insert into Test(id) values(1)")
-    await adelay(10)
+    await adelay(30)
     assert.equal(2, testData.length)
 
     await sql("insert into TestSub(id) values(10)")
     await adelay(10)
     assert.equal(3, testData.length)
 
-    await sql("insert into TestSub(id) values(10)")
-    await adelay(10)
-    assert.equal(3, testData.length)
-
     // only this should trigger
-    await sql("insert into TestSub(id, testId) values(10, 1)")
+    await sql("insert into TestSub(id, testId) values(11, 1)")
     await adelay(10)
     assert.equal(4, testData.length)
   })
