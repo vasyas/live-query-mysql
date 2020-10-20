@@ -39,12 +39,13 @@ describe("where track", () => {
   })
 
   // operators: like, in, gt, lt
+
   // combinators: and, or
   // page (limit, offset)
 
-  // only certaint fields
+  // only certain fields
 
-  // functinos: lower etc
+  // functions: lower etc
 
   // inner joins
 
