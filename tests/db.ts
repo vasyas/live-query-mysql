@@ -1,7 +1,10 @@
 import {BinlogTriggers, DbConfig} from "binlog-triggers-mysql"
+import log = require("loglevel")
 import * as mysql from "mysql"
 import {setTrackingContextWrapper} from "../src/LiveQuery"
 import {enableLiveQueries, getQueryDataTrack, resetLiveQueriesTracks} from "../src/tracker"
+
+log.enableAll()
 
 const dbConfig: DbConfig = {
   database: "binlog_demo",

@@ -58,9 +58,85 @@ describe("where track", () => {
     assert.equal(2, testData.length)
   })
 
-  // operators: like, in, gt, lt
+  it("single field constant logic", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from Test where id > 2 and id < 4")
+    )
 
-  // combinators: and, or
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(2)")
+    await adelay(10)
+    assert.equal(1, testData.length)
+
+    // this should be caught
+    await sql("insert into Test(id) values(3)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    // this is not
+    await sql("insert into Test(id) values(4)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+  })
+
+  it("single field constant logic order", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from Test where id = 2 or id = 3")
+    )
+
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(2)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    // this should be caught
+    await sql("insert into Test(id) values(3)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+
+    // this is not
+    await sql("insert into Test(id) values(4)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+  })
+
+  it("parenthes", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from Test where id = (4 / 4 + 1)")
+    )
+
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(2)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    await sql("insert into Test(id) values(3)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+  })
+
+  // parenthes
+
+  // operators: like, in
+
   // page (limit, offset)
 
   // only certain fields

@@ -83,6 +83,11 @@ function binary_expr(node) {
       case "%":
         return leftValue * rightValue
 
+      case "+":
+        return leftValue + rightValue
+      case "-":
+        return leftValue - rightValue
+
       case ">=":
         return leftValue >= rightValue
       case ">":
