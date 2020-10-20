@@ -2,7 +2,7 @@ import {BinlogEvent, BinlogTriggers, Row} from "binlog-triggers-mysql"
 import {ensureArray} from "binlog-triggers-mysql/dist/utils"
 import {From, Parser} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
-import {createTrackAffects, TrackAffects} from "./trackAffects"
+import {createTrackAffects, TrackExpression} from "./trackExpression"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   binlogTriggers.allTables((rows, prevRows, event) => {
@@ -22,7 +22,7 @@ export function resetLiveQueriesTracks() {
 }
 
 const perTableTracks: {
-  [tableName: string]: {query: LiveQuery<unknown, unknown>; affects: TrackAffects}[]
+  [tableName: string]: {query: LiveQuery<unknown, unknown>; affects: TrackExpression}[]
 } = {}
 
 export function trackData(track: DataTrack, query: LiveQuery<unknown, unknown>) {
@@ -59,7 +59,9 @@ function getAffectedQueries(
   const allRows = [...rows, ...(prevRows || [])]
 
   const tableTracks = perTableTracks[event.tableName] || []
-  return tableTracks.filter((t) => allRows.some((row) => t.affects(row))).map((t) => t.query)
+  return tableTracks
+    .filter((t) => allRows.some((row) => t.affects(row, event.tableName)))
+    .map((t) => t.query)
 }
 
 export function getQueryDataTrack(query, params): DataTrack {
@@ -87,5 +89,5 @@ export function getQueryDataTrack(query, params): DataTrack {
 export type DataTrack = TableTrack[]
 export type TableTrack = {
   name: string
-  affects: TrackAffects
+  affects: TrackExpression
 }

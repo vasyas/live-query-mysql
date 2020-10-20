@@ -1,16 +1,16 @@
 import {Row} from "binlog-triggers-mysql"
 const log = require("loglevel")
 
-export type TrackAffects = (row: Row) => boolean
+export type TrackExpression = (row: Row, tableName: string) => boolean
 
-export function createTrackAffects(where): TrackAffects {
+export function createTrackAffects(where): TrackExpression {
   if (!where) return always
 
   const impl = expr(where)
 
-  return (row) => {
+  return (row, tableName) => {
     try {
-      return impl(row)
+      return impl(row, tableName)
     } catch (e) {
       log.debug("Failed to calc affects ", e)
 
@@ -47,7 +47,11 @@ function expr(node) {
 }
 
 function column_ref(node) {
-  return (row) => {
+  return (row, tableName) => {
+    console.log({node, row})
+
+    if (node.table && node.table != tableName) return undefined
+
     return row[node.column]
   }
 }

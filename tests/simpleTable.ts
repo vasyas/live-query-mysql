@@ -46,8 +46,12 @@ describe("simple track", () => {
     )
 
     await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
     await sql("insert into Test values()")
     await adelay(10)
+    assert.equal(2, testData.length)
+
     await sql("insert into TestSub values()")
     await adelay(10)
     assert.equal(3, testData.length)

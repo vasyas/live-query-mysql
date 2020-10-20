@@ -158,6 +158,53 @@ describe("where track", () => {
     assert.equal(3, testData.length)
   })
 
+  it("join", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from TestSub join Test where Test.id = TestSub.testId")
+    )
+
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    await sql("insert into TestSub(id, testId) values(1, 1)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+  })
+
+  it("join can't track", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql(
+        "select * from TestSub join Test where Test.id = TestSub.testId and (TestSub.id = 10 or TestSub.id = 11)"
+      )
+    )
+
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
+    // hard - only last one should trigger, no good way to handle it
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    await sql("insert into TestSub(id) values(10)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+
+    await sql("insert into TestSub(id) values(10)")
+    await adelay(10)
+    assert.equal(3, testData.length)
+
+    // only this should trigger
+    await sql("insert into TestSub(id, testId) values(10, 1)")
+    await adelay(10)
+    assert.equal(4, testData.length)
+  })
+
   // operators: like
   // page (limit, offset)
 
