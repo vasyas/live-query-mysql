@@ -12,6 +12,8 @@ export function createTrackAffects(where): TrackExpression {
     try {
       return impl(row, tableName)
     } catch (e) {
+      console.log({row, tableName})
+
       log.debug("Failed to calc affects ", e)
 
       // affects by default
@@ -48,9 +50,9 @@ function expr(node) {
 
 function column_ref(node) {
   return (row, tableName) => {
-    console.log({node, row})
-
-    if (node.table && node.table != tableName) return undefined
+    if (node.table && node.table != tableName) {
+      throw new Error(`Can't refer column ${node.table}.${node.column}`)
+    }
 
     return row[node.column]
   }
@@ -59,8 +61,8 @@ function column_ref(node) {
 function expr_list(node) {
   const items = node.value.map((v) => expr(v))
 
-  return (row) => {
-    return items.map((i) => i(row))
+  return (row, tableName) => {
+    return items.map((i) => i(row, tableName))
   }
 }
 
@@ -68,9 +70,9 @@ function binary_expr(node) {
   const left = expr(node.left)
   const right = expr(node.right)
 
-  return (row) => {
-    const leftValue = left(row)
-    const rightValue = right(row)
+  return (row, tableName) => {
+    const leftValue = left(row, tableName)
+    const rightValue = right(row, tableName)
 
     // console.log("Calc", {node, leftValue, rightValue})
 
