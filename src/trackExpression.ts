@@ -4,13 +4,23 @@ const log = require("loglevel")
 export type TrackExpression = (row: Row, tableName: string) => boolean
 
 export function createTrackAffects(where): TrackExpression {
-  if (!where) return always
+  if (!where) return () => true
 
-  const impl = expr(where)
+  let impl = (...args) => true
+
+  try {
+    impl = expr(where)
+  } catch (e) {
+    log.debug("Failed to build affects expression. ", e.message)
+    return () => true
+  }
 
   return (row, tableName) => {
     try {
-      return impl(row, tableName)
+      const r = impl(row, tableName)
+      // console.log("Checking affect for row", row, " is ", r)
+
+      return r
     } catch (e) {
       console.log({row, tableName})
 
@@ -43,8 +53,8 @@ function expr(node) {
       return expr_list(node)
 
     default:
-      log.debug("Unsupported node ", node)
-      return always
+      // will be catched, and all rows matched
+      throw new Error("Unsupported node " + node.type)
   }
 }
 
@@ -117,9 +127,8 @@ function binary_expr(node) {
         return like(leftValue, rightValue)
     }
 
-    // by default always affects
-    log.debug("Unsupported node ", node)
-    return true
+    // will be catched, and all rows matched
+    throw new Error("Unsupported node " + node.type)
   }
 }
 
@@ -127,5 +136,3 @@ function like(leftValue, rightValue) {
   // TODO implement
   return true
 }
-
-const always = () => true
