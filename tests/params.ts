@@ -23,8 +23,13 @@ describe("params track", () => {
     assert.equal(2, testData.length)
 
     // ignored
-    await sql("delete from Test")
+    await sql("insert into Test(id) values(3)")
     await adelay(10)
     assert.equal(2, testData.length)
+
+    // triggered
+    await sql("delete from Test")
+    await adelay(10)
+    assert.equal(3, testData.length)
   })
 })

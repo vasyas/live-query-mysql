@@ -3,13 +3,13 @@ const log = require("loglevel")
 
 export type TrackExpression = (row: Row, tableName: string) => boolean
 
-export function createTrackAffects(where): TrackExpression {
+export function createTrackAffects(where, params): TrackExpression {
   if (!where) return () => true
 
   let impl = (...args) => true
 
   try {
-    impl = expr(where)
+    impl = expr(where, params)
   } catch (e) {
     log.debug("Failed to build affects expression. ", e.message)
     return () => true
@@ -22,7 +22,7 @@ export function createTrackAffects(where): TrackExpression {
 
       return r
     } catch (e) {
-      console.log({row, tableName})
+      // console.log({row, tableName})
 
       log.debug("Failed to calc affects. ", e.message)
 
@@ -34,14 +34,26 @@ export function createTrackAffects(where): TrackExpression {
 
 // parsing based on https://github.com/taozhi8833998/node-sql-parser/blob/master/ast/postgresql.ts
 
-function expr(node) {
+function expr(node, params) {
+  // console.log(node)
+
   switch (node.type) {
     case "binary_expr":
-      return binary_expr(node)
+      return binary_expr(node, params)
+
+    case "string":
+      if (node.value.startsWith(placeholderPrefix)) {
+        const placeholderIndex = +node.value.substring(placeholderPrefix.length)
+
+        if (placeholderIndex >= params.length)
+          throw new Error("Query has more placeholders than params")
+
+        return () => params[placeholderIndex]
+      }
+      return () => node.value
 
     case "number":
     case "single_quote_string":
-    case "string":
     case "bool":
     case "null":
       return () => node.value
@@ -50,10 +62,11 @@ function expr(node) {
       return column_ref(node)
 
     case "expr_list":
-      return expr_list(node)
+      return expr_list(node, params)
 
     default:
       // will be catched, and all rows matched
+      // console.log(node)
       throw new Error("Unsupported node " + node.type)
   }
 }
@@ -68,17 +81,17 @@ function column_ref(node) {
   }
 }
 
-function expr_list(node) {
-  const items = node.value.map((v) => expr(v))
+function expr_list(node, params) {
+  const items = node.value.map((v) => expr(v, params))
 
   return (row, tableName) => {
     return items.map((i) => i(row, tableName))
   }
 }
 
-function binary_expr(node) {
-  const left = expr(node.left)
-  const right = expr(node.right)
+function binary_expr(node, params) {
+  const left = expr(node.left, params)
+  const right = expr(node.right, params)
 
   return (row, tableName) => {
     const leftValue = left(row, tableName)
@@ -136,3 +149,19 @@ function like(leftValue, rightValue) {
   // TODO implement
   return true
 }
+
+export function wrapPlaceholders(s) {
+  let r = ""
+
+  s.split("?").forEach((part, i) => {
+    if (i > 0) {
+      r += `"${placeholderPrefix}${i - 1}"`
+    }
+
+    r += part
+  })
+
+  return r
+}
+
+const placeholderPrefix = "??"
