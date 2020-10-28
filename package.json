@@ -1,12 +1,12 @@
 {
-  "name": "live-query",
-  "version": "1.0.0",
+  "name": "live-query-mysql",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/vasyas/live-query.git",
+  "repository": "https://github.com/vasyas/live-query-mysql.git",
   "keywords": [
     "mysql",
     "binlog",
