@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@push-rpc/core": "^1.1.4",
-    "binlog-triggers-mysql": "^1.0.1",
+    "binlog-triggers-mysql": "^1.0.2",
     "loglevel": "^1.7.0",
     "node-sql-parser": "^3.1.0"
   },
