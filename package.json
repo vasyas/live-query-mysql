@@ -1,6 +1,6 @@
 {
   "name": "live-query-mysql",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@push-rpc/core": "^1.1.4",
-    "binlog-triggers-mysql": "^1.0.2",
+    "binlog-triggers-mysql": "^1.0.3",
     "loglevel": "^1.7.0",
     "node-sql-parser": "^3.1.0"
   },
