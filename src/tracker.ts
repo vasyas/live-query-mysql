@@ -75,12 +75,18 @@ export function getQueryDataTrack(query, params): DataTrack {
   for (const ast of asts) {
     if (ast.type != "select") continue
 
+    const tableMap = ast.from.reduce((r, from: From) => {
+      r[from.as] = from.table
+      r[from.table] = from.table
+      return r
+    }, {})
+
     for (const from of ast.from) {
       if (from["type"] == "dual") continue
 
       r.push({
         name: (from as From).table,
-        affects: createTrackAffects(ast.where, params),
+        affects: createTrackAffects(ast.where, tableMap, params),
       })
     }
   }

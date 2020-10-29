@@ -201,13 +201,30 @@ describe("where track", () => {
     assert.equal(4, testData.length)
   })
 
+  it("table aliases", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from Test t where t.id = 1")
+    )
+
+    await liveQuery.subscribeSession(mockSession, {})
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    // this one is ignored
+    await sql("insert into Test(id) values(2)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+  })
+
   // operators: like
   // page (limit, offset)
 
   // only certain fields
   // functions: lower etc
 
-  // inner joins
   // operators with json
 
   // groups?

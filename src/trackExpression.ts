@@ -2,14 +2,15 @@ import {Row} from "binlog-triggers-mysql"
 const log = require("loglevel")
 
 export type TrackExpression = (row: Row, tableName: string) => boolean
+export type TableMap = {[alias: string]: string}
 
-export function createTrackAffects(where, params): TrackExpression {
+export function createTrackAffects(where, tableMap: TableMap, params: any[]): TrackExpression {
   if (!where) return () => true
 
   let impl = (...args) => true
 
   try {
-    impl = expr(where, params)
+    impl = expr(where, tableMap, params)
   } catch (e) {
     log.debug("Failed to build affects expression. ", e.message)
     return () => true
@@ -34,12 +35,12 @@ export function createTrackAffects(where, params): TrackExpression {
 
 // parsing based on https://github.com/taozhi8833998/node-sql-parser/blob/master/ast/postgresql.ts
 
-function expr(node, params) {
+function expr(node, tableMap, params) {
   // console.log(node)
 
   switch (node.type) {
     case "binary_expr":
-      return binary_expr(node, params)
+      return binary_expr(node, tableMap, params)
 
     case "string":
       if (node.value.startsWith(placeholderPrefix)) {
@@ -59,10 +60,10 @@ function expr(node, params) {
       return () => node.value
 
     case "column_ref":
-      return column_ref(node)
+      return column_ref(node, tableMap)
 
     case "expr_list":
-      return expr_list(node, params)
+      return expr_list(node, tableMap, params)
 
     default:
       // will be catched, and all rows matched
@@ -71,9 +72,12 @@ function expr(node, params) {
   }
 }
 
-function column_ref(node) {
+function column_ref(node, tableMap: TableMap) {
   return (row, tableName) => {
-    if (node.table && node.table != tableName) {
+    const table =
+      Object.values(tableMap).indexOf(node.table) >= 0 ? node.table : tableMap[node.table]
+
+    if (table != tableName) {
       throw new Error(`Can't refer column ${node.table}.${node.column}`)
     }
 
@@ -81,17 +85,17 @@ function column_ref(node) {
   }
 }
 
-function expr_list(node, params) {
-  const items = node.value.map((v) => expr(v, params))
+function expr_list(node, tableMap, params) {
+  const items = node.value.map((v) => expr(v, tableMap, params))
 
   return (row, tableName) => {
     return items.map((i) => i(row, tableName))
   }
 }
 
-function binary_expr(node, params) {
-  const left = expr(node.left, params)
-  const right = expr(node.right, params)
+function binary_expr(node, tableMap, params) {
+  const left = expr(node.left, tableMap, params)
+  const right = expr(node.right, tableMap, params)
 
   return (row, tableName) => {
     const leftValue = left(row, tableName)
