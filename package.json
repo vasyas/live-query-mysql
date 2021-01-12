@@ -21,7 +21,7 @@
     "prepublish": "yarn build"
   },
   "dependencies": {
-    "@push-rpc/core": "^1.1.4",
+    "@push-rpc/core": "^1.2.6",
     "binlog-triggers-mysql": "^1.0.3",
     "loglevel": "^1.7.0",
     "node-sql-parser": "^3.1.0"

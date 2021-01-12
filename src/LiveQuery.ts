@@ -21,17 +21,18 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
     })
   }
 
-  async subscribeSession(session, filter: F) {
+  async subscribeSession(session, filter: F, messageId: any, ctx: any) {
     const subscribed = this.isSubscribed()
 
-    await super.subscribeSession(session, filter)
+    const r = await super.subscribeSession(session, filter, messageId, ctx)
 
     // already have track filled here, b/c initial data is sent
 
     if (!subscribed) {
-      for (const track of this.tracks)
-        trackData(track, this)
+      for (const track of this.tracks) trackData(track, this)
     }
+
+    return r
   }
 
   unsubscribeSession(session, filter: F) {
@@ -39,20 +40,24 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
 
     // no longer subscribed and at least one query complete
     if (!this.isSubscribed() && this.tracks) {
-      for (const track of this.tracks)
-        untrackData(track, this)
+      for (const track of this.tracks) untrackData(track, this)
     }
   }
 
   private tracks: DataTrack[]
 }
 
-export type TrackingContextWrapper<T extends Record<string, unknown>> = (ctx: T, saveTrack: (t: DataTrack) => void) => T
+export type TrackingContextWrapper<T extends Record<string, unknown>> = (
+  ctx: T,
+  saveTrack: (t: DataTrack) => void
+) => T
 
 let trackingContextWrapper: TrackingContextWrapper<Record<string, unknown>> = () => {
   throw new Error("Provide trackingContextWrapper")
 }
 
-export function setTrackingContextWrapper<T extends Record<string, unknown>>(w: TrackingContextWrapper<T>) {
+export function setTrackingContextWrapper<T extends Record<string, unknown>>(
+  w: TrackingContextWrapper<T>
+) {
   trackingContextWrapper = w
 }
