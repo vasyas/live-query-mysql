@@ -21,12 +21,15 @@
     "prepublish": "yarn build"
   },
   "dependencies": {
-    "@push-rpc/core": "^1.2.6",
-    "binlog-triggers-mysql": "^1.0.3",
+    "binlog-triggers-mysql": "^1.0.6",
     "loglevel": "^1.7.0",
     "node-sql-parser": "^3.1.0"
   },
+  "peerDependencies": {
+    "@push-rpc/core": "^1.2.6"
+  },
   "devDependencies": {
+    "@push-rpc/core": "^1.2.6",
     "@types/chai": "^4.2.5",
     "@types/mocha": "^8.0.0",
     "@types/node": "^14.0.22",

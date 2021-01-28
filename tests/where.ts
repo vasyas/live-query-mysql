@@ -1,13 +1,13 @@
 import {assert} from "chai"
 import {LiveQuery} from "../src/LiveQuery"
 import {adelay, Context, sql} from "./db"
-import {mockSession, testData} from "./mockSession"
+import {mockContext, mockSession, testData} from "./mockSession"
 
 describe("where track", () => {
   it("single field constant", async () => {
     const liveQuery = new LiveQuery((_, ctx: Context) => ctx.sql("select * from Test where id = 1"))
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -25,7 +25,7 @@ describe("where track", () => {
       ctx.sql("select * from Test where id = ?", [1])
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -41,7 +41,7 @@ describe("where track", () => {
   it("single field constant op", async () => {
     const liveQuery = new LiveQuery((_, ctx: Context) => ctx.sql("select * from Test where 2 < id"))
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -63,7 +63,7 @@ describe("where track", () => {
       ctx.sql("select * from Test where id > 2 and id < 4")
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -90,7 +90,7 @@ describe("where track", () => {
       ctx.sql("select * from Test where id = 2 or id = 3")
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -117,7 +117,7 @@ describe("where track", () => {
       ctx.sql("select * from Test where id = (4 / 4 + 1)")
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -138,7 +138,7 @@ describe("where track", () => {
       ctx.sql("select * from Test where id in (2, 3)")
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -163,7 +163,7 @@ describe("where track", () => {
       ctx.sql("select * from TestSub join Test where Test.id = TestSub.testId")
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")
@@ -182,7 +182,7 @@ describe("where track", () => {
       )
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     // hard - only last one should trigger, no good way to handle it
@@ -206,7 +206,7 @@ describe("where track", () => {
       ctx.sql("select * from Test t where t.id = 1")
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test(id) values(1)")

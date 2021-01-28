@@ -1,7 +1,7 @@
 import {assert} from "chai"
 import {LiveQuery} from "../src/LiveQuery"
 import {adelay, Context, sql} from "./db"
-import {mockSession, testData} from "./mockSession"
+import {mockContext, mockSession, testData} from "./mockSession"
 
 describe("simple track", () => {
   it("single table", async () => {
@@ -9,7 +9,7 @@ describe("simple track", () => {
       await ctx.sql("select * from Test")
     })
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test values()")
@@ -28,7 +28,7 @@ describe("simple track", () => {
       await ctx.sql("select * from TestSub")
     })
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     await sql("insert into Test values()")
     await adelay(10)
     await sql("insert into TestSub values()")
@@ -45,7 +45,7 @@ describe("simple track", () => {
       `)
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test values()")
@@ -62,7 +62,7 @@ describe("simple track", () => {
       await ctx.sql("select * from Test")
     })
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     await sql("insert into Test values()")

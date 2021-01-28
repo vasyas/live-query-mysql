@@ -1,4 +1,4 @@
-import {sql} from "./db"
+import {Context, sql} from "./db"
 
 export let testData = []
 
@@ -7,9 +7,15 @@ export const mockSession = {
     // console.log("G: ", {type, topicName, filter, data})
     testData.push(data)
   },
-  createContext: () => ({sql}),
+
+  createContext() {
+    return mockContext
+  },
 }
+
+export const mockContext: Context = {sql}
 
 beforeEach(() => {
   testData.length = 0
+  testData.push("initial")
 })

@@ -1,7 +1,7 @@
 import {assert} from "chai"
 import {LiveQuery} from "../src/LiveQuery"
 import {adelay, Context, sql} from "./db"
-import {mockSession, testData} from "./mockSession"
+import {mockSession, testData, mockContext} from "./mockSession"
 
 describe("params track", () => {
   it("in where", async () => {
@@ -9,7 +9,7 @@ describe("params track", () => {
       ctx.sql("select * from Test where id = ?", [2])
     )
 
-    await liveQuery.subscribeSession(mockSession, {})
+    await liveQuery.subscribeSession(mockSession, {}, 1, mockContext)
     assert.equal(1, testData.length)
 
     // ignored
