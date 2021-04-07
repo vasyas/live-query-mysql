@@ -3,6 +3,7 @@ import {ensureArray} from "binlog-triggers-mysql/dist/utils"
 import {From, Parser} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
 import {createTrackAffects, TrackExpression, wrapPlaceholders} from "./trackExpression"
+import {lowerCaseTableName, options} from "./options"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   binlogTriggers.allTables((rows, prevRows, event) => {
@@ -56,11 +57,13 @@ function getAffectedQueries(
   rows: Row[],
   prevRows: Row[]
 ): LiveQuery<unknown, unknown>[] {
+  const tableName = lowerCaseTableName(event.tableName)
+
   const allRows = [...rows, ...(prevRows || [])]
 
-  const tableTracks = perTableTracks[event.tableName] || []
+  const tableTracks = perTableTracks[tableName] || []
   return tableTracks
-    .filter((t) => allRows.some((row) => t.affects(row, event.tableName)))
+    .filter((t) => allRows.some((row) => t.affects(row, tableName)))
     .map((t) => t.query)
 }
 
@@ -76,8 +79,8 @@ export function getQueryDataTrack(query, params): DataTrack {
     if (ast.type != "select") continue
 
     const tableMap = ast.from.reduce((r, from: From) => {
-      r[from.as] = from.table
-      r[from.table] = from.table
+      r[from.as] = lowerCaseTableName(from.table)
+      r[from.table] = lowerCaseTableName(from.table)
       return r
     }, {})
 
@@ -85,7 +88,7 @@ export function getQueryDataTrack(query, params): DataTrack {
       if (from["type"] == "dual") continue
 
       r.push({
-        name: (from as From).table,
+        name: lowerCaseTableName((from as From).table),
         affects: createTrackAffects(ast.where, tableMap, params),
       })
     }

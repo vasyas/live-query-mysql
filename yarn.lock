@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@push-rpc/core@^1.2.6":
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/@push-rpc/core/-/core-1.2.6.tgz#f2e44a253df8957e48fe0b43e3bf2ea90f4a1c4f"
-  integrity sha512-lE3s5adAVYdQ2f4m9+9vB+TnDDbsRPtI+tbY62ZHi3dTUh5Bj+IDIHrfR4XfyVP5ZEaz67DicFhhX4KywTYMbQ==
+"@push-rpc/core@^1.2.9":
+  version "1.2.9"
+  resolved "https://registry.yarnpkg.com/@push-rpc/core/-/core-1.2.9.tgz#bba413b22ed9dedb915a5b4dd9ee345f44fa00f1"
+  integrity sha512-z1SsRu+NRG1GNXsEGMxoMzyH9WFWLIgoMBwa3phFh3i0CatFFM/+HMNHr8cw6S6oH3TVNUzG2VWgUln6Sz5gpA==
   dependencies:
     uuid-js "^0.7.5"
 
@@ -113,10 +113,10 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"
   integrity sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==
 
-binlog-triggers-mysql@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/binlog-triggers-mysql/-/binlog-triggers-mysql-1.0.6.tgz#dbad525fc610db6264e3acea8987bacedb2f6c64"
-  integrity sha512-V7QNdjbNDc+fSbw7WmvNs4A0kaf362h4l7DiOHaub//3kKlxP1+IyCdcfFeECYyTjjVqrKOi8XvXiwco39p+Lw==
+binlog-triggers-mysql@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/binlog-triggers-mysql/-/binlog-triggers-mysql-1.0.8.tgz#0fa68a3704de7ab1fe7262305b6ff0cb327dc572"
+  integrity sha512-TczXt3jz8l3Q/v5rotG7w4/lXFyYymi/6pBhDZ7XtwPRMCKmraiVe/IybAs3SGsB+8z8/Lqt7WZv4g+bi20enw==
   dependencies:
     loglevel "^1.7.0"
     zongji "^0.5.1"
