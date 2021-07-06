@@ -11,6 +11,7 @@ export type LiveQueryOptions = {
 }
 
 export function lowerCaseTableName(s: string) {
+  if (!s) return s
   if (options.forceLowerCase) return s.toLowerCase()
   return s
 }
