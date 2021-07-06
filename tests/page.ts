@@ -21,4 +21,22 @@ describe("limit/offset track", () => {
     await adelay(10)
     assert.equal(2, testData.length)
   })
+
+  it("offset with params", async () => {
+    const liveQuery = new LiveQuery((_, ctx: Context) =>
+      ctx.sql("select * from Test limit ? offset ?", [1, 2])
+    )
+
+    await liveQuery.subscribeSession(mockSession, {}, "1", mockContext)
+    assert.equal(1, testData.length)
+
+    await sql("insert into Test(id) values(1)")
+    await adelay(10)
+    assert.equal(2, testData.length)
+
+    // this should be tracked
+    await sql("update Test set id = 10 where id = 1")
+    await adelay(10)
+    assert.equal(3, testData.length)
+  })
 })

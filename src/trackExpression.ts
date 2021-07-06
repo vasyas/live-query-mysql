@@ -43,8 +43,8 @@ function expr(node, tableMap, params) {
       return binary_expr(node, tableMap, params)
 
     case "string":
-      if (node.value.startsWith(placeholderPrefix)) {
-        const placeholderIndex = +node.value.substring(placeholderPrefix.length)
+      if (node.value.startsWith(stringPlaceholderPrefix)) {
+        const placeholderIndex = +node.value.substring(stringPlaceholderPrefix.length)
 
         if (placeholderIndex >= params.length)
           throw new Error("Query has more placeholders than params")
@@ -54,6 +54,16 @@ function expr(node, tableMap, params) {
       return () => node.value
 
     case "number":
+      if (("" + node.value).startsWith(numberPlaceholderPrefix)) {
+        const placeholderIndex = +("" + node.value).substring(numberPlaceholderPrefix.length)
+
+        if (placeholderIndex >= params.length)
+          throw new Error("Query has more placeholders than params")
+
+        return () => params[placeholderIndex]
+      }
+      return () => node.value
+
     case "single_quote_string":
     case "bool":
     case "null":
@@ -157,15 +167,29 @@ function like(leftValue, rightValue) {
 export function wrapPlaceholders(s) {
   let r = ""
 
+  let lastPart = ""
+
+  // some params can only be numbers
+  function isNumberPlaceholder() {
+    const s = lastPart.toLowerCase()
+    return s.indexOf("limit") >= 0 || s.indexOf("offset") >= 0
+  }
+
   s.split("?").forEach((part, i) => {
     if (i > 0) {
-      r += `"${placeholderPrefix}${i - 1}"`
+      if (isNumberPlaceholder()) {
+        r += `${numberPlaceholderPrefix}${i - 1}`
+      } else {
+        r += `"${stringPlaceholderPrefix}${i - 1}"`
+      }
     }
 
     r += part
+    lastPart = part
   })
 
   return r
 }
 
-const placeholderPrefix = "??"
+const stringPlaceholderPrefix = "??"
+const numberPlaceholderPrefix = "77700000"
