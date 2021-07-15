@@ -61,12 +61,12 @@ function getAffectedQueries(
 
   const allRows = [...rows, ...(prevRows || [])]
 
-  // FIXME remove duplicating queries
-
   const tableTracks = perTableTracks[tableName] || []
-  return tableTracks
+  const queries = tableTracks
     .filter((t) => allRows.some((row) => t.affects(row, tableName)))
     .map((t) => t.query)
+
+  return [...new Set(queries)]
 }
 
 export function getQueryDataTrack(query, params): DataTrack {

@@ -44,9 +44,12 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
     // no longer subscribed and at least one query complete
     if (!this.isSubscribed() && this.tracks) {
       for (const track of this.tracks) untrackData(track, this)
+
+      this.tracks = null
     }
   }
 
+  // FIXME tracks should be parameter-specific. Otherwise, subscribing in a same session to a same LQ with different params will be ignored.
   private tracks: DataTrack[]
 }
 
