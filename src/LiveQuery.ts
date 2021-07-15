@@ -16,6 +16,9 @@ export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
 
     // wrap sql to track affected tables
     return trackingContextWrapper(ctx, (track) => {
+      // skip dummy queries
+      if (!track.length) return
+
       if (!this.tracks) this.tracks = []
       this.tracks.push(track)
     })

@@ -3,7 +3,7 @@ import {ensureArray} from "binlog-triggers-mysql/dist/utils"
 import {From, Parser} from "node-sql-parser"
 import {LiveQuery} from "./LiveQuery"
 import {createTrackAffects, TrackExpression, wrapPlaceholders} from "./trackExpression"
-import {lowerCaseTableName, options} from "./options"
+import {lowerCaseTableName} from "./options"
 
 export function enableLiveQueries(binlogTriggers: BinlogTriggers) {
   binlogTriggers.allTables((rows, prevRows, event) => {
@@ -86,6 +86,8 @@ export function getQueryDataTrack(query, params): DataTrack {
 
     for (const from of ast.from) {
       if (from["type"] == "dual") continue
+
+      if (!from.table) continue
 
       r.push({
         name: lowerCaseTableName((from as From).table),
