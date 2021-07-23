@@ -7,6 +7,10 @@ import {DataTrack, trackData, untrackData} from "./tracker"
  */
 export class LiveQuery<D, F, TD = D> extends LocalTopicImpl<D, F, TD> {
   constructor(supplier: DataSupplier<D, F>, opts?: Partial<LocalTopicImplOpts<D, F, TD>>) {
+    if (!opts.throttleTimeout) {
+      opts.throttleTimeout = 5 * 1000
+    }
+
     super((f: F, ctx) => supplier(f, this.wrapContextIfRequired(ctx)), opts)
   }
 
