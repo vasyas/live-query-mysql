@@ -25,7 +25,7 @@ export function createTrackAffects(where, tableMap: TableMap, params: any[]): Tr
     } catch (e) {
       // console.log({row, tableName})
 
-      log.debug("Failed to calc affects. ", e.message)
+      // log.debug("Failed to calc affects. ", e.message)
 
       // affects by default
       return true
